@@ -78,18 +78,22 @@ def apar(ax,ay,az,bx,by,bz):
     cz = z*bz/bmag
     return cx,cy,cz
     
-# read in a pointmass file  format fileroot_pm%d.txt
-def readpmfile(fileroot,np):
-    filename = (fileroot,'_pm') + str(np) + '.txt'
-    t,x,y,z,vx,vy,vz,m=\
-        np.loadtxt(filename, skiprows=1, unpack='true')
-    return t,x,y,z,vx,vy,vz,m
+
+# read in a pointmass file  format fileroot_pm0.txt
+def readpmfile(fileroot,npi):
+    junk = '.txt'
+    filename = "%s_pm%d%s"%(fileroot,npi,junk)
+    print(filename)
+    tt,x,y,z,vx,vy,vz,mm =\
+           np.loadtxt(filename, skiprows=1, unpack='true') 
+    return tt,x,y,z,vx,vy,vz,mm
 
 # read in an extended mass output  file  format fileroot_ext.txt
 def readresfile(fileroot):
-    filename = (fileroot,'_ext.txt')
+    filename = fileroot+'_ext.txt'
+    print(filename)
     t,x,y,z,vx,vy,vz,omx,omy,omz,llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz=\
-        np.loadtxt(filename, skiprows=1, unpack='true')
+        np.loadtxt(filename, skiprows=1, unpack='true') 
     return t,x,y,z,vx,vy,vz,omx,omy,omz,llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz
 
 
@@ -177,28 +181,6 @@ def compute_semi(GM,x,y,z,vx,vy,vz):
     e2 = 1.0 - ltot2/(a*GM)
     e = np.sqrt(np.abs(e2) + 1e-20)
     return a,e
-
-def plot2(mc,filename):
-    tt,aa,nn,ee,ii,omx,omy,omz,A,B,C,E,lx,ly,lz,ang,lox,loy,loz=readfile(filename)
-    meanmotion,spin,obldeg = useful_vecs(mc,aa,omx,omy,omz,ang)
-    #coord system
-    nt_x,nt_y,nt_z=ntvec(lx,ly,lz,lox,loy,loz) 
-    ex_x,ex_y,ex_z,ey_x,ey_y,ey_z=exy(nt_x,nt_y,nt_z)
-    # precession angle
-    prec_ang=precess_ang(lx,ly,lz,ex_x,ex_y,ex_z,ey_x,ey_y,ey_z)
-    # precession rate, cleaned
-    dphidt=prec_dphidt(tt,prec_ang,5)
-
-    plt.figure(figsize=(10, 3), dpi=100)
-
-    plt.subplot(121)
-    plt.plot(tt,obldeg,'k.', ms=1)
-    plt.ylabel("obliquity (deg)")
-    plt.xlabel("time")
-
-    plt.subplot(122)
-    plt.plot(spin/meanmotion, obldeg, 'b.',ms=1)
-    plt.xlabel("spin/meanmotion")
 
 
 # try to get an angular rotation rate from a single particle
@@ -879,248 +861,6 @@ def plot_resangs41(mc,qratio,froot,saveit,tmax):
         print(ofile)
         plt.savefig(ofile)
     
-
-
-
-def plot6(mc,qratio,froot,saveit):
-    tfile=froot + '_tab.txt'
-    bfile=froot + '_bin.txt'
-    tt,aa,nn,ee,ii,omx,omy,omz,A,B,C,E,lx,ly,lz,ang,lox,loy,loz=readfile(tfile)
-    meanmotion,spin,obldeg = useful_vecs(mc,aa,omx,omy,omz,ang)
-    tt,xc,yc,zc,vxc,vyc,vzc,xs,ys,zs,vxs,vys,vzs,xpc,ypc,zpc,vxpc,vypc,vzpc,\
-        llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz=readbinfile2(bfile)
-    #coord system, inertial, numbers not vecs
-    nt_x,nt_y,nt_z=ntvec(lx,ly,lz,lox,loy,loz)   #using sum of spin and orbit ang mom
-    ex_x,ex_y,ex_z,ey_x,ey_y,ey_z=exy(nt_x,nt_y,nt_z)
-
-    n_o,n_b,mufac=useful_freqs(mc,qratio,aa,xpc,ypc,zpc,vxpc,vypc,vzpc) # numbers
-    aB,eB = compute_semi(mc,xpc,ypc,zpc,vxpc,vypc,vzpc) # binary, vectors
-    nB = np.sqrt(mc)/aB**1.5  #vector 
-    boxs =30
-    n_o_filt = median_filter(meanmotion,boxs)
-    nB_filt = median_filter(nB,boxs)
-
-    # normal to orbit
-    no_x,no_y,no_z=crossprod_unit(xc,yc,zc,vxc,vyc,vzc)
-    # normal to binary orbit
-    noB_x,noB_y,noB_z=crossprod_unit(xpc,ypc,zpc,vxpc,vypc,vzpc)
-
-    # angle between body angular momentum and orbit normal
-    nlx,nly,nlz = normalize_vec(lx,ly,lz)  # body ang mom unit vect
-    ang_so = dotprod(nlx,nly,nlz,no_x,no_y,no_z)
-    ang_so = np.arccos(ang_so)*angfac   # obliquity  in degrees
-    # angle between body angular momentum and binary orbit normal
-    ang_sb = dotprod(nlx,nly,nlz,noB_x,noB_y,noB_z)
-    ang_sb = np.arccos(ang_sb)*angfac   # obliquity_B  in degrees
-
-    P_b = 2.0*np.pi/n_b;
-    P_o = 2.0*np.pi/n_o;
-    print("P_b = ",P_b);
-    print("P_o = ",P_o);
-    print("P_o/P_b = ", n_b/n_o);
-    print("emean = ",np.mean(ee));
-    print("amean = ",np.mean(aa));
-    print("imean = ",np.mean(ii));
-    print("nbmean =",np.mean(nB));
-
-    #set up figure
-    plt.figure(figsize=(10, 6), dpi=100)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.subplots_adjust(left=0.08, right=0.99, top=0.99, bottom=0.10, wspace=0.20, hspace=0.22)
-    
-    # obliquity,  formally: angle between body angmom and orbit angmom
-    ax1 = plt.subplot(231)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.plot(tt,ang_so,'k.', ms=1)  # I checked that these are pretty much the same
-    plt.ylabel("obliquity (deg)")  
-    plt.xlabel("time")             
-    plt.ylim(-1.0,181.0)
-
-    # spin/mm vs obliquity
-    ax2=plt.subplot(232)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.plot(spin/n_o_filt, ang_so, 'b.',ms=1)
-    plt.xlabel("spin/nofilt")
-    plt.ylabel("obliquity (deg)")
-    plt.ylim(-1.0,181.0)
-
-    # spin/mm 
-    ax3=plt.subplot(233,sharex=ax1)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-    plt.ylabel("spin/meanmotion")
-    plt.setp(ax3.get_xticklabels(), visible=False)
-    tarr = np.array([0,np.max(tt)])
-    imax = np.int(np.max(2*spin/n_o))
-    imin = np.int(np.min(2*spin/n_o))
-    for i in range(imin,imax+2):
-        rarr = tarr*0.0 + 0.5*i
-        plt.plot(tarr,rarr,'k-')
-
-    imax = np.int(np.max(spin/nB))
-    imin = np.int(np.min(spin/nB))
-    #print(imin,imax)
-    if (qratio > 0.01):  #only plot blue lines if mass ratio above this
-        for i in range(imin-1,imax+1):
-            rarr = tarr*0.0 + i*n_b/n_o 
-            #plt.plot(tarr,rarr,'b-')
-            plt.plot(tt,i*nB/n_o_filt,'m.',ms=1)
-    ymin = np.min(spin/n_o)-0.5
-    ymax = np.max(spin/n_o)+0.5
-    plt.ylim(ymin,ymax)
-
-    plt.plot(tt,spin/n_o_filt, 'g.',ms=1)
-
-    # precession rate angular momentum of spin
-    plt.subplot(234)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-  
-    # precession angle of angular momentum vs our inertial coordinate system
-    #prec_ang=precess_ang(lx,ly,lz,ex_x,ex_y,ex_z,ey_x,ey_y,ey_z)
-    prec_ang=precess_ang(lx,ly,lz,1.0,0.0,0.0,0.0,1.0,0.0) # xyz coord system
-    # spin precession rate, cleaned
-    dphidt=prec_dphidt(tt,prec_ang,5)
-
-    # get orbital elements, but with respect to xyz coordinate system
-    k=5   # every 5 outputs
-    tvec,avec,evec,ivec,lnvec,arvec,mavec=orbels_vec(k,mc,tt,xc,yc,zc,vxc,vyc,vzc)
-    #no_vec = sqrt(mc)*avec**-1.5
-    # some more precession rates
-    dlndt = prec_dphidt(tvec,lnvec,5)  # cleaned dlongnode/dt
-    dardt = prec_dphidt(tvec,arvec,5)  # cleaned dargperi/dt
-    #dmadt = prec_dphidt(tvec,mavec,10)  # cleaned dM/dt 
-    plt.plot(tvec,dlndt, 'b.',ms=1)
-    plt.plot(tt,dphidt, 'r.',ms=1)
-    plt.ylabel("dphidt, dlndt")
-
-
-    #body tilt
-    plt.subplot(235)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-    k=10
-    tvec,svec_ma,lvec_ma,svec_mi,lvec_mi,svec_me,lvec_me,ang_ll,gdot,ldot,l1dot,spvec=\
-            vec_tilts(k,tt,omx,omy,omz,llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz)
-    plt.plot(tvec,lvec_ma*angfac,'r.',ms=2)  # red is max eigenvalue
-    plt.plot(tvec,lvec_mi*angfac,'c.',ms=1)  # cyan is min eigenvalue
-    plt.plot(tvec,lvec_me*angfac,'g.',ms=1)  #
-    plt.ylabel("non-principal rotation angle J (deg)")
-    plt.ylim(-1.0,91.0)
-    # red is plotting J, the so-called non-principal rotation angle
-
-
-    #
-    plt.subplot(236)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-
-    #plt.plot(tvec,ang_ll*angfac,'g.', ms=2)
-    #plt.ylabel("ll deg")  # looks crappy
-    #plt.plot(tvec,gdot,'b.', ms=1)
-    plt.plot(tvec,np.abs(ldot),'c.', ms=1)
-    #plt.plot(tvec,2*np.abs(ldot),'c.', ms=1)
-    #plt.plot(tt,omx,'k.',ms=1);
-    plt.plot(tt,omz,'b.',ms=1);
-    omperp = np.sqrt(omx*omx + omy*omy)
-    plt.plot(tt,omperp,'r.',ms=1);
-    plt.plot(tvec,gdot - np.abs(ldot),'k.', ms=1)
-    plt.plot(tt,nB,'y.', ms=1)
-
-    if (saveit==1):
-        ofile = froot+".pdf"
-        print(ofile)
-        plt.savefig(ofile)
-
-    slope_spin(tt,spin)
-
-def plot3(mc,qratio,froot,saveit):
-    tfile=froot + '_tab.txt'
-    bfile=froot + '_bin.txt'
-    tt,aa,nn,ee,ii,omx,omy,omz,A,B,C,E,lx,ly,lz,ang,lox,loy,loz=readfile(tfile)
-    meanmotion,spin,obldeg = useful_vecs(mc,aa,omx,omy,omz,ang)
-    tt,xc,yc,zc,vxc,vyc,vzc,xs,ys,zs,vxs,vys,vzs,xpc,ypc,zpc,vxpc,vypc,vzpc,\
-        llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz=readbinfile2(bfile)
-    #coord system
-    nt_x,nt_y,nt_z=ntvec(lx,ly,lz,lox,loy,loz) 
-    ex_x,ex_y,ex_z,ey_x,ey_y,ey_z=exy(nt_x,nt_y,nt_z)
-
-    n_o,n_b,mufac=useful_freqs(mc,qratio,aa,xpc,ypc,zpc,vxpc,vypc,vzpc) # numbers 
-    boxs=20
-    n_o_filt = median_filter(meanmotion,boxs)
-
-    #set up figure
-    plt.figure(figsize=(10, 4), dpi=100)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.subplots_adjust(left=0.08, right=0.99, top=0.99, bottom=0.10, wspace=0.20, hspace=0.22)
-
-    #e
-    plt.subplot(231)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-    plt.plot(tt,ee,'k.', ms=1)
-    plt.ylabel("e")
-
-    # nb/no
-    plt.subplot(232)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-    aB,eB = compute_semi(mc,xpc,ypc,zpc,vxpc,vypc,vzpc) # vectors
-    nB = np.sqrt(mc)/aB**1.5
-    nB_filt = median_filter(nB,boxs)
-
-    #plt.plot(tt,aB,'b.',ms=1)
-    plt.plot(tt,nB_filt/n_o_filt,'b.',ms=1)
-    plt.ylabel("nB/no")
-    #plt.plot(tt,eB,'g.',ms=1)
-    print("eB emean = ",np.mean(eB))
-    print("PB = ", np.mean(2.0*np.pi/nB));
-
-    plt.subplot(233)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-    #plt.plot(tt,eB,'g.',ms=1)
-    #plt.ylabel("eB")
-
-    # spin/nb
-    tarr = np.array([0,np.max(tt)])
-    imax = np.int(np.max(2*spin/nB))
-    imin = np.int(np.min(2*spin/nB))
-    for i in range(imin,imax+2):
-        rarr = tarr*0.0 + 0.5*i
-        plt.plot(tarr,rarr,'b-')
-    #print(imin,imax)
-    ymin = np.min(spin/nB)-0.5
-    ymax = np.max(spin/nB)+0.5
-    plt.ylim(ymin,ymax)
-    plt.plot(tt,spin/nB_filt, 'g.',ms=1)
-    plt.ylabel("spin/nB")
-
-    plt.subplot(234)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.xlabel("time")
-    plt.plot(tt,meanmotion, 'k.',ms=1)
-    plt.ylabel("mean motion")
-
-    #inclination
-    plt.subplot(235)
-    plt.autoscale(enable=True, axis='x', tight=True)
-    plt.ticklabel_format(axis='x', style='sci', scilimits=(-2,2))
-    plt.plot(tt,ii*angfac, 'k.',ms=1)
-    plt.ylabel("incl (deg)")
-    plt.xlabel("time")
-
-
 
 def nice_freqs(mc,qratio,froot):
     tfile=froot + '_tab.txt'
