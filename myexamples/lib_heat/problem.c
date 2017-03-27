@@ -69,7 +69,7 @@ int main(int argc, char* argv[]){
         aa          = 7.0;   // semi-major axis of m1 from resolved body
 	ee           =0.0;   // initial eccentricity
 
-        ratio1 =0.7; // shape of resolved body  y/x
+        ratio1 =0.7; // shape of resolved body  y/x b/a
         ratio2 =0.5; // z/x
         t_print =  1.0;  // printouts for table
         t_heat =  10000.0;  // heat printouts 
@@ -241,8 +241,6 @@ int main(int argc, char* argv[]){
    fprintf(fpr,"relaxation_time  %.3e\n",tau_relax);
 
    double barchi = 2.0*fabs(om - omegaz)*tau_relax;  // initial value of barchi
-   // double posc = 0.5*2.0*M_PI/fabs(om - omegaz); // for oscillations!
-   // t_print = posc;  // output timescale
    fprintf(fpr,"barchi  %.4f\n",barchi);
    printf("barchi %.4f\n",barchi);
    // fprintf(fpr,"posc %.6f\n",posc);
@@ -293,9 +291,6 @@ void heartbeat(struct reb_simulation* const r){
          centerbody(r,0,r->N-npert);  // move reference frame, position only
          addto_heatvec(r); // store heat accumulated each timestep
 
-        //  double theta = ang_pert(r);  // angle of perturbing mass
-        // printf("theta =%.2f\n",theta);
-         // rotate_body_nocom(r, 0, r->N, 0.0,0.0 , -theta);
 
 	 if (reb_output_check(r,t_print)) {
             print_tab(r,npert,tabfile); // orbital info and stuff
