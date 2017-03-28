@@ -48,14 +48,20 @@ void print_extended(struct reb_simulation* const r, int il, int ih, char* filena
    fclose(fpo);
 }
 
+#define NPMAXE 100
 // print out information for a point mass with index ip
 void print_pm(struct reb_simulation* const r, int ip, char* filename)
 {
    struct reb_particle* particles = r->particles;
+   static int firstarr[NPMAXE];
    static int first=0;
-   FILE *fpo;
    if (first==0){
-     first=1;
+      first=1;
+      for (int i=0;i<NPMAXE;i++) firstarr[i]=0;
+   }
+   FILE *fpo;
+   if (firstarr[ip]==0){
+     firstarr[ip]=1;
      fpo = fopen(filename, "w");
      fprintf(fpo,"# t x y z vx vy vz m\n");
    }
