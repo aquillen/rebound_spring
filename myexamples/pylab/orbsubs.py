@@ -97,6 +97,91 @@ def readresfile(fileroot):
     return t,x,y,z,vx,vy,vz,omx,omy,omz,llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz
 
 
+# read in all the point mass files at once
+# return a mass array
+# return time array
+# return tuple of position and velocity vectors?
+def readallpmfiles(fileroot,numberpm):
+    mvec = np.zeros(0)    
+    tt,x,y,z,vx,vy,vz,mm=readpmfile(fileroot,0)
+    nt = len(tt)  # length of arrays
+    mvec = np.append(mvec,mm[0])
+    xarr = np.zeros((numberpm,nt))
+    yarr = np.zeros((numberpm,nt))
+    zarr = np.zeros((numberpm,nt))
+    vxarr = np.zeros((numberpm,nt))
+    vyarr = np.zeros((numberpm,nt))
+    vzarr = np.zeros((numberpm,nt))
+    xarr[0] = x
+    yarr[0] = y
+    zarr[0] = z
+    vxarr[0] = vx
+    vyarr[0] = vy
+    vzarr[0] = vz
+    for i in range(1,numberpm):
+        ttt,x,y,z,vx,vy,vz,mm=readpmfile(fileroot,i)
+        mvec = np.append(mvec,mm[0])
+        xarr[i] = x
+        yarr[i] = y
+        zarr[i] = z
+        vxarr[i] = vx
+        vyarr[i] = vy
+        vzarr[i] = vz
+
+    return tt, mvec, xarr,yarr,zarr,vxarr,vyarr,vzarr
+
+
+# fill arrays with orbital elements all w.r.t to first point mass
+# which is assumed to be the central object
+# resolved body orbit is put in first index of arrays
+def orbels_arr(fileroot,numberpm):
+    t,x,y,z,vx,vy,vz,omx,omy,omz,llx,lly,llz,Ixx,Iyy,Izz,Ixy,Iyz,Ixz=\
+       readresfile(fileroot)  # resolved body stuff
+    tt, mvec, xarr,yarr,zarr,vxarr,vyarr,vzarr=\
+       readallpmfiles(fileroot,numberpm)  # point mass stuff
+    aaarr = xarr*0.0
+    eearr = xarr*0.0
+    iiarr = xarr*0.0
+    lnarr = xarr*0.0
+    ararr = xarr*0.0
+    maarr = xarr*0.0
+    nl = len(tt)
+    imc = 0  # index of central mass
+    GM = mvec[imc] 
+    # coordinates with respect to first point mass that is assumed to be central object
+    dxarr = x- xarr[imc];  dyarr= y- yarr[imc];  dzarr= z- zarr[imc]
+    dvxarr=vx-vxarr[imc]; dvyarr=vy-vyarr[imc]; dvzarr=vz-vzarr[imc]
+    for k in range(nl):      # for the resolved body
+        aa,ee,ii,longnode,argperi,meananom=\
+               keplerian(GM,dxarr[k],dyarr[k],dzarr[k],dvxarr[k],dvyarr[k],dvzarr[k])
+        aaarr[imc][k] = aa
+        eearr[imc][k] = ee
+        iiarr[imc][k] = ii
+        lnarr[imc][k] = longnode
+        ararr[imc][k] = argperi 
+        maarr[imc][k] = meananom 
+
+    for i in range(1,numberpm):
+        dxarr = xarr[i]- xarr[imc];  dyarr= yarr[i] -  yarr[imc];  dzarr= zarr[i]- zarr[imc]
+        dvxarr=vxarr[i]-vxarr[imc]; dvyarr=vyarr[i] - vyarr[imc]; dvzarr=vzarr[i]-vzarr[imc]
+        for k in range(nl):    # for the point masses  
+            dx  =  xarr[i][k] -  xarr[imc][k]
+            dy  =  yarr[i][k] -  yarr[imc][k]
+            dz  =  zarr[i][k] -  zarr[imc][k]
+            dvx = vxarr[i][k] - vxarr[imc][k]
+            dvy = vyarr[i][k] - vyarr[imc][k]
+            dvz = vzarr[i][k] - vzarr[imc][k]
+            aa,ee,ii,longnode,argperi,meananom=\
+               keplerian(GM,dxarr[k],dyarr[k],dzarr[k],dvxarr[k],dvyarr[k],dvzarr[k])
+            aaarr[i][k] = aa
+            eearr[i][k] = ee
+            iiarr[i][k] = ii
+            lnarr[i][k] = longnode
+            ararr[i][k] = argperi 
+            maarr[i][k] = meananom 
+    return t,mvec,aaarr,eearr,iiarr,lnarr,ararr,maarr
+
+
 # read in filename, these are _tab.txt files
 # ii,ee orb elements w.r.t to cartesian coord system
 def readfile(filename):
