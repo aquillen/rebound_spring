@@ -146,6 +146,42 @@ def give_body_angs(fileroot):
     return obliquity_deg,spin,Jvec
 
 
+def plt_cols(fileroot,numberpm,saveit,tmax):
+    tt,mvec,aaarr,eearr,iiarr,lnarr,ararr,maarr=\
+       orbels_arr(fileroot,numberpm)
+    obliq_deg,spin,Jvec = give_body_angs(fileroot)
+
+    ###########set up figure
+    #plt.rcParams.update({'font.size': 14})
+    f,axarr =  plt.subplots(2,2, dpi=100, figsize=(10,8), sharex=True)
+    plt.autoscale(enable=True, axis='x', tight=True)
+    plt.subplots_adjust(left=0.09, right=0.99, top=0.99, bottom=0.10, \
+        wspace=0.22, hspace=0.0)
+    colorstr = ['k', 'r', 'b', 'g', 'm', 'c']
+    ncolors = len(colorstr)
+
+    il = 0; ih=0  # top left
+    axarr[il,ih].set_ylabel('obliquity (deg)')
+    axarr[il,ih].plot(tt,obliq_deg,'c.', ms=1) # label='')
+
+    il = 1; ih=0  # second left
+    axarr[il,ih].set_ylabel('a e')
+    for ip in range(numberpm):
+        colorl = colorstr[ip%ncolors]
+        axarr[il,ih].scatter(tt,aaarr[ip],color=colorl, s=1) # label='')
+        ytop = aaarr[ip]*(1.0 + eearr[ip])
+        ybot = aaarr[ip]*(1.0 - eearr[ip])
+        axarr[il,ih].errorbar(tt,aaarr[ip],yerr=[ybot,ytop],\
+            linestyle="None", marker="None", color=colorl)
+
+    il = 0; ih=1  # top right
+    axarr[il,ih].set_ylabel('spin')
+    axarr[il,ih].plot(tt,spin,'r.', ms=1) # label='')
+
+    il = 1; ih=0; axarr[il,ih].set_xlabel('time')
+    il = 1; ih=1; axarr[il,ih].set_xlabel('time')
+
+
 # make an inertial coordinate system, numbers not vectors returned
 # total angular momentum is nearly fixed
 def ntvec(lx,ly,lz,lox,loy,loz):
