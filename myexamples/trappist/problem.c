@@ -23,7 +23,9 @@ double gamma_all; // for gamma  of all springs
 double t_damp;    // end faster damping, relaxation
 double t_print;   // for table printout 
 char froot[30];   // output files
-int npert;
+int npert=0;
+
+int icentral=-1; // central mass location
 
 #define NPMAX 10  // maximum number of point masses
 double itaua[NPMAX],itaue[NPMAX];
@@ -176,6 +178,7 @@ int main(int argc, char* argv[]){
    int ih=r->N;
 
    centerbody(r,il,ih);  // move reference frame to resolved body 
+   subtractcov(r,il,ih); // center of velocity subtracted 
    // spin it
    spin(r,il, ih, 0.0, 0.0, omegaz);  // change one of these zeros to tilt it!
        // can spin about non principal axis
@@ -208,17 +211,18 @@ int main(int argc, char* argv[]){
    fprintf(fpr,"relaxation_time  %.3e\n",tau_relax);
 
    double om = 0.0; 
-   // set up central star
    if (npointmass >0){ 
+      // set up central star
       int ip=0;
       om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
              aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
       fprintf(fpr,"resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       printf("resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
+      icentral = ih;
       // set up rest of point masses
       for(int ipp = 1;ipp<npointmass;ipp++){
-          double omp; // central mass assumed to be first one ip=ih
-          omp = add_pt_mass_kep(r, il, ih, ih, mp[ipp], rad[ipp],
+          double omp; // central mass assumed to be first one ipp=ih = icentral
+          omp = add_pt_mass_kep(r, il, ih, icentral, mp[ipp], rad[ipp],
              aa[ipp],ee[ipp], ii[ipp], longnode[ipp],argperi[ipp],meananom[ipp]);
           fprintf(fpr,"pointm %d mm=%.3f period=%.2f\n",ipp,omp,2.0*M_PI/omp);
           printf("pointm %d mm=%.3f period=%.2f\n",ipp,omp,2.0*M_PI/omp);

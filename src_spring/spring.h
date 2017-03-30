@@ -32,6 +32,7 @@ extern double gamma_all; // for gamma  of all springs
 
 void spring_forces();
 
+void subtractcov();
 void print_extended();
 void print_pm();
 void hfilename();

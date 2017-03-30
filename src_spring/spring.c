@@ -206,6 +206,13 @@ void centerbody(struct reb_simulation* const r,int il, int ih){
    } 
 }
 
+// subtract center of velocity from the resolved body
+void subtractcov(struct reb_simulation* const r,int il, int ih){
+   double vxc =0.0; double vyc =0.0; double vzc =0.0;
+   compute_cov(r,il, ih, &vxc, &vyc, &vzc); // center of velocity of resolved body
+   move_resolved(r,0.0,0.0,0.0,-vxc,-vyc,-vzc, il,ih);
+}
+
 
 // return spring strain
 double strain(struct reb_simulation* const r,struct spring spr){
