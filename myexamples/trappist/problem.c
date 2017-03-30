@@ -177,11 +177,12 @@ int main(int argc, char* argv[]){
    int il=0;  // index range for resolved body
    int ih=r->N;
 
-   centerbody(r,il,ih);  // move reference frame to resolved body 
-   subtractcov(r,il,ih); // center of velocity subtracted 
+   subtractcom(r,il,ih);  // move reference frame to resolved body 
    // spin it
+   subtractcov(r,il,ih); // center of velocity subtracted 
    spin(r,il, ih, 0.0, 0.0, omegaz);  // change one of these zeros to tilt it!
        // can spin about non principal axis
+   subtractcov(r,il,ih); // center of velocity subtracted 
    double speriod  = fabs(2.0*M_PI/omegaz);
    printf("spin period %.6f\n",speriod);
    fprintf(fpr,"spin period %.6f\n",speriod);
@@ -214,8 +215,9 @@ int main(int argc, char* argv[]){
    if (npointmass >0){ 
       // set up central star
       int ip=0;
-      om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
-             aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
+      // om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
+      //     aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
+      printf("hello\n");
       fprintf(fpr,"resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       printf("resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       icentral = ih;

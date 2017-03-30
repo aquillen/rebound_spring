@@ -176,7 +176,8 @@ double sum_mass(struct reb_simulation* const r,int il, int ih)
 
 // compute center of velocity particles in particle range [il,ih-1]
 // values returned in vxc, vyc, vzc
-void compute_cov(struct reb_simulation* const r,int il, int ih, double *vxc, double *vyc, double *vzc){
+void compute_cov(struct reb_simulation* const r,int il, int ih, 
+   double *vxc, double *vyc, double *vzc){
    double vxsum = 0.0; double vysum = 0.0; double vzsum = 0.0;
    double msum = 0.0;
    struct reb_particle* particles = r->particles;
@@ -195,7 +196,7 @@ void compute_cov(struct reb_simulation* const r,int il, int ih, double *vxc, dou
 // go to coordinate frame of body defined by vertices/particles [il,ih-1]
 // mass weighted center of mass
 // only coordinates changed,  particle velocities not changed
-// all particles are shifted
+// all particles are shifted, not just the extended body
 void centerbody(struct reb_simulation* const r,int il, int ih){
    double xc =0.0; double yc =0.0; double zc =0.0;
    compute_com(r,il, ih, &xc, &yc, &zc);
@@ -207,10 +208,19 @@ void centerbody(struct reb_simulation* const r,int il, int ih){
 }
 
 // subtract center of velocity from the resolved body
+// only changing particles in the resolved body [il,ih)
 void subtractcov(struct reb_simulation* const r,int il, int ih){
    double vxc =0.0; double vyc =0.0; double vzc =0.0;
    compute_cov(r,il, ih, &vxc, &vyc, &vzc); // center of velocity of resolved body
    move_resolved(r,0.0,0.0,0.0,-vxc,-vyc,-vzc, il,ih);
+}
+
+// subtract center of mass position from the resolved body
+// only changing particles in the resolved body [il,ih)
+void subtractcom(struct reb_simulation* const r,int il, int ih){
+   double xc =0.0; double yc =0.0; double zc =0.0;
+   compute_com(r,il, ih, &xc, &yc, &zc); // center of velocity of resolved body
+   move_resolved(r,-xc,-yc,-zc,0.0,0.0,0.0,il,ih);
 }
 
 
