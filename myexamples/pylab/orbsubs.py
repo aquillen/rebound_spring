@@ -162,21 +162,21 @@ def plt_cols(fileroot,numberpm,saveit,tmax):
 
     il = 0; ih=0  # top left
     axarr[il,ih].set_ylabel('obliquity (deg)')
-    axarr[il,ih].plot(tt,obliq_deg,'c.', ms=1) # label='')
+    axarr[il,ih].plot(tt,obliq_deg,'c.', ms=2) # label='')
 
     il = 1; ih=0  # second left
     axarr[il,ih].set_ylabel('a e')
     for ip in range(numberpm):
         colorl = colorstr[ip%ncolors]
         axarr[il,ih].scatter(tt,aaarr[ip],color=colorl, s=1) # label='')
-        ytop = aaarr[ip]*(1.0 + eearr[ip])
-        ybot = aaarr[ip]*(1.0 - eearr[ip])
+        ytop = aaarr[ip]*eearr[ip]
+        ybot = ytop             
         axarr[il,ih].errorbar(tt,aaarr[ip],yerr=[ybot,ytop],\
             linestyle="None", marker="None", color=colorl)
 
     il = 0; ih=1  # top right
     axarr[il,ih].set_ylabel('spin')
-    axarr[il,ih].plot(tt,spin,'r.', ms=1) # label='')
+    axarr[il,ih].plot(tt,spin,'r.', ms=2) # label='')
 
     il = 1; ih=0; axarr[il,ih].set_xlabel('time')
     il = 1; ih=1; axarr[il,ih].set_xlabel('time')
