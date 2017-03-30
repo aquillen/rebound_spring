@@ -215,9 +215,8 @@ int main(int argc, char* argv[]){
    if (npointmass >0){ 
       // set up central star
       int ip=0;
-      // om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
-      //     aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
-      printf("hello *************************\n");
+       om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
+           aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
       fprintf(fpr,"resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       printf("resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       icentral = ih;
@@ -283,15 +282,17 @@ void heartbeat(struct reb_simulation* const r){
             // reset gamma only at t near t_damp
 	
          // stuff to do every timestep
-         centerbody(r,0,r->N-npert);  // move reference frame 
+         centerbody(r,0,r->N-npert);  // move reference frame to resolved body for display
          // dodrifts!!!!
+         int il = 0; // resolved body index range
+         int ih = r->N -npert;
          if (npert>0) {
             for(int i=0;i<npert;i++){
-                int ip = r->N -npert+i;
-                if (i==0)
-                   dodrift_res(r, r->dt , itaua[i], itaue[i], ip, 0, r->N);
-                else
-                   dodrift_bin(r, r->dt,  itaua[i], itaue[i], ip, r->N - npert);
+                int ip = icentral+i;  // which body drifting
+                if (i==0)  // it is central mass, so drift resolved body
+                   dodrift_res(r, r->dt , itaua[i], itaue[i], icentral, il, ih);
+                else  // it is another point mass, drifts w.r.t to icentral
+                   dodrift_bin(r, r->dt,  itaua[i], itaue[i], icentral, ip);
             }
 
          }
