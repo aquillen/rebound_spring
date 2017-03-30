@@ -129,8 +129,8 @@ def give_body_angs(fileroot):
     # normal to orbit
     imc = 0  # central mass
     dx = x - xarr[imc]; dvx = vx - vxarr[imc]
-    dy = y - xarr[imc]; dvy = vy - vyarr[imc]
-    dz = z - xarr[imc]; dvz = vz - vzarr[imc]
+    dy = y - yarr[imc]; dvy = vy - vyarr[imc]
+    dz = z - zarr[imc]; dvz = vz - vzarr[imc]
     no_x,no_y,no_z=crossprod_unit(dx,dy,dz,dvx,dvy,dvz)  #orbit normal
     nlx,nly,nlz = normalize_vec(llx,lly,llz)  # body spin angular momentum unit vect
     ang_so = dotprod(nlx,nly,nlz,no_x,no_y,no_z)
