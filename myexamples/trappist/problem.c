@@ -217,7 +217,7 @@ int main(int argc, char* argv[]){
       int ip=0;
       // om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
       //     aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
-      printf("hello\n");
+      printf("hello *************************\n");
       fprintf(fpr,"resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       printf("resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       icentral = ih;
