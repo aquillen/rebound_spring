@@ -50,7 +50,9 @@ void print_extended(struct reb_simulation* const r, int il, int ih, char* filena
 
 #define NPMAXE 100
 // print out information for a point mass with index ip
-void print_pm(struct reb_simulation* const r, int ip, char* filename)
+// which point mass is ipert  (0 being the central one)
+// but ip is its index in the particle list
+void print_pm(struct reb_simulation* const r, int ip, int ipert, char* filename)
 {
    struct reb_particle* particles = r->particles;
    static int firstarr[NPMAXE];
@@ -60,10 +62,11 @@ void print_pm(struct reb_simulation* const r, int ip, char* filename)
       for (int i=0;i<NPMAXE;i++) firstarr[i]=0;
    }
    FILE *fpo;
-   if (firstarr[ip]==0){
-     firstarr[ip]=1;
-     fpo = fopen(filename, "w");
+   if (firstarr[ipert]==0){  
+     firstarr[ipert]=1;
+     fpo = fopen(filename, "w");                     
      fprintf(fpo,"# t x y z vx vy vz m\n");
+     printf("%s w openned\n",filename);
    }
    else {
      fpo = fopen(filename, "a");

@@ -301,8 +301,8 @@ void heartbeat(struct reb_simulation* const r){
             print_extended(r,0,r->N-npert,extendedfile); // orbital info and stuff
             if (npert>0) 
                for(int i=0;i<npert;i++){
-                  int ip = r->N-npert+i;
-                  print_pm(r,ip,pointmassfile+i*NSPACE);
+                  int ip = icentral+i;
+                  print_pm(r,ip,i,pointmassfile+i*NSPACE);
                }
          }
 

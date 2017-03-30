@@ -102,8 +102,8 @@ double add_pt_mass_kep(struct reb_simulation* const r,
    double vx0=0.0; double vy0=0.0; double vz0=0.0;
    if (ip<0){ // moving resolved body
      m0 = sum_mass(r,il,ih);
-     centerbody(r,il, ih);  // zero center of mass    of extended body
-     subtractcov(r,il,ih);  // subtract center of velocity of extended body
+     subtractcom(r,il,ih);  // zero center of mass position of extended body
+     subtractcov(r,il,ih);  // subtract center of mass velocity of extended body
    }
    else { // new particle has motion w.r.t to particle at ip
      m0 = particles[ip].m;
