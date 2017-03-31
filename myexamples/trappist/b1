@@ -1,4 +1,4 @@
-a1      froot        # fileroot for outputs
+b1      froot        # fileroot for outputs
 0.03    dt           # timestep
 1e6     tmax         # integrate to this time
 10.0    t_print      # output between timesteps
@@ -10,11 +10,11 @@ a1      froot        # fileroot for outputs
 0.1     gamma_all    # spring damping final
 5.0     t_damp       # time to switch damping
 1.0     ratio1       # axis ratio for body b/a
-0.5     ratio2       # second axis ratio   c/a
+0.9     ratio2       # second axis ratio   c/a
 0.6     omegaz       # initial body spin
 20.0     obliquity    # obliquity degrees
 2       pointmass    #  number of point masses, below each 2 lines per pt mass
-1e6    10.0 0.0  0.0               #  mass,rad,itaua,itaue      
-300.0  0.0  0.0  0.0  0.0  0.0     #  aa,ee,ii,longnode,argperi,meananom
- 1.0   1.0 -1e-6 0.0               #  mass,rad,itaua,itaue      itau>0 apart
-420.0  0.0  0.01 0.0  0.0  1.0     #  aa,ee,ii,longnode,argperi,meananom
+1e6    10.0 -1e-6 0.0               #  mass,rad,itaua,itaue      
+410.0  0.0   0.0  0.0  0.0  0.0     #  aa,ee,ii,longnode,argperi,meananom
+ 1.0   1.0   0e-6 0.0               #  mass,rad,itaua,itaue      itau>0 apart
+300.0  0.0   0.01 0.0  0.0  1.0     #  aa,ee,ii,longnode,argperi,meananom

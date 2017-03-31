@@ -184,7 +184,7 @@ double add_one_mass_kep(struct reb_simulation* const r, double m1,
 // we can write evolution as dr^2/dt^2 = -v/taua - (v-v_c)/taue
 // inv_taua and inv_taue are in units of 1/time 
 // inv_taua = (1/a) da/dt, inv_taue = (1/e) de/dt
-//  if tau_a <0 drifting outwards
+//  if inv_tau_a >0 drifting apart !!!!!!!!!!!!!!
 //
 // cc>0 and alpha=0 corresponds to no eccentricity change
 // with taua^-1 = 2C(1-alpha), taue^-1 = C*alpha from Beauge et al.

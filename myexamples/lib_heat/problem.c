@@ -18,6 +18,7 @@
 int NS; 
 struct spring* springs;
 void reb_springs();// to pass springs to display
+#define NPMAX 10  // maximum number of point masses
 
 double gamma_fac; // for adjustment of gamma of all springs
 double t_damp;    // end faster damping, relaxation
@@ -26,6 +27,8 @@ double t_heat;    // for heat  printout
 char froot[30];   // output files
 int npert; // number of point mass perturbers
 double powerfac; // fraction of heat to center of spring rather than nodes
+
+int icentral=-1; // central mass location
 
 void heartbeat(struct reb_simulation* const r);
 
@@ -178,8 +181,10 @@ int main(int argc, char* argv[]){
    int il=0;
    int ih=r->N;
    centerbody(r,il,ih);  // move reference frame to resolved body 
+   subtractcov(r,il,ih);  // subtract center of velocity
    // spin it
    spin(r,il, ih, 0.0, 0.0, omegaz);  // you can change one of these to tilt!
+   subtractcov(r,il,ih);  // subtract center of velocity
    double speriod  = fabs(2.0*M_PI/omegaz);
    printf("spin period %.6f\n",speriod);
    fprintf(fpr,"spin period %.6f\n",speriod);
@@ -223,6 +228,7 @@ int main(int argc, char* argv[]){
 
       // om=add_one_mass_kep(r, m1, aa, ee, ii,longnode,argperi,meananom,mball,r1);
       npert = 1;
+      icentral = ih;
    }
    double period = 2.0*M_PI/om;  // initial orbital rotation period
    printf("rot_period %.3f \n", period);
@@ -269,17 +275,20 @@ int main(int argc, char* argv[]){
 }
 
 
-
+#define NSPACE 50
 void heartbeat(struct reb_simulation* const r){
-        static int first=0;
-        static char tabfile[50];
-        static char binfile[50];
         char hfile[100];
+        static int first=0;
+        static char extendedfile[50];
+        static char pointmassfile[NPMAX*NSPACE];
         if (first==0){
            first=1;
-           sprintf(tabfile,"%s_tab.txt",froot);
-           sprintf(binfile,"%s_bin.txt",froot);
+           sprintf(extendedfile,"%s_ext.txt",froot);
+           for(int i=0;i<npert;i++){
+             sprintf(pointmassfile+i*NSPACE,"%s_pm%d.txt",froot,i);
+           }
         }
+
 	if (reb_output_check(r,10.0*r->dt)){
 		reb_output_timing(r,0);
 	}
@@ -291,11 +300,16 @@ void heartbeat(struct reb_simulation* const r){
          centerbody(r,0,r->N-npert);  // move reference frame, position only
          addto_heatvec(r); // store heat accumulated each timestep
 
-
-	 if (reb_output_check(r,t_print)) {
-            print_tab(r,npert,tabfile); // orbital info and stuff
-            print_bin(r,npert,binfile);
+         if (reb_output_check(r,t_print)) {
+            print_extended(r,0,r->N-npert,extendedfile); // orbital info and stuff
+            if (npert>0)
+               for(int i=0;i<npert;i++){
+                  int ip = icentral+i;
+                  print_pm(r,ip,i,pointmassfile+i*NSPACE);
+               }
          }
+
+
 	 if (reb_output_check(r,t_heat)) { // heat files
             int ndt = (int)(t_heat/r->dt);
             hfilename(r,froot, t_heat, hfile);

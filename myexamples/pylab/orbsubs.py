@@ -157,12 +157,17 @@ def plt_cols(fileroot,numberpm,saveit,tmax):
     plt.autoscale(enable=True, axis='x', tight=True)
     plt.subplots_adjust(left=0.09, right=0.99, top=0.99, bottom=0.10, \
         wspace=0.22, hspace=0.0)
+    xmin = 0.0; xmax = np.max(tt)
+    if (tmax > 0):
+        xmax = np.min([xmax,tmax])
+
     colorstr = ['k', 'r', 'b', 'g', 'm', 'c']
     ncolors = len(colorstr)
 
     il = 0; ih=0  # top left
     axarr[il,ih].set_ylabel('obliquity (deg)')
     axarr[il,ih].plot(tt,obliq_deg,'c.', ms=2) # label='')
+    axarr[il,ih].set_xlim([xmin,xmax])
 
     il = 1; ih=0  # second left
     axarr[il,ih].set_ylabel('a e')
