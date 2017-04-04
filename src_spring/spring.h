@@ -32,6 +32,7 @@ extern double gamma_all; // for gamma  of all springs
 
 void spring_forces();
 
+void adjust_ks_abc();
 void subtractcov();
 void subtractcom();
 void print_extended();

@@ -325,6 +325,7 @@ static void reb_display_keyboard(GLFWwindow* window, int key, int scancode, int 
                 break;
             case 'Q':
                 data->r->status = REB_EXIT_USER;
+                printf("\n"); // ACQ added
                 break;
             case ' ':
                 if (data->r->status == REB_RUNNING_PAUSED){
@@ -1225,7 +1226,7 @@ int reb_display_copy_data(struct reb_simulation* const r){
         data->NS = r->NS;
         data->springs_v_data = realloc(data->springs_v_data
                ,r->NS*2*sizeof(struct reb_particle_opengl));
-        printf("/n springs_v_data NS=%d\n",data->NS); // this was reached
+        printf("\n springs_v_data NS=%d\n",data->NS); // this was reached
     } // ACQ
     
 

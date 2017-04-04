@@ -19,6 +19,7 @@ int NS;
 struct spring* springs;
 void reb_springs();// to pass springs to display
 #define NPMAX 10  // maximum number of point masses
+double itaua[NPMAX],itaue[NPMAX];
 
 double gamma_fac; // for adjustment of gamma of all springs
 double t_damp;    // end faster damping, relaxation
@@ -51,14 +52,20 @@ int main(int argc, char* argv[]){
         double tmax = 0.0;  // if 0 integrate forever
 
 // things to set! ////////////////////// could be read in with parameter file
-        double dt, b_distance,omegaz,aa,ks,m1,mush_fac,gamma_all,ee;
-        double ratio1,ratio2,ks_I,r_I,dmfac,xside,gamma_I,obliq_deg;
-        int type,nporb;
+        double dt, b_distance,omegaz,ks,mush_fac,gamma_all,extra;
+        double ratio1,ratio2,ks_I,r_I,gamma_I,obliq_deg;
+        double eps_c=0.0;
+        int lattice_type;
+        double rad[NPMAX],mp[NPMAX];
+        double aa[NPMAX],ee[NPMAX],ii[NPMAX];
+        double longnode[NPMAX],argperi[NPMAX],meananom[NPMAX];
+        int npointmass=0;
+        npert=0;
 
     if (argc ==1){
         strcpy(froot,"t1");   // to make output files
 	dt	   = 1e-3;    // Timestep
-	type       =0;        // 0=rand 1=hcp
+	lattice_type       =0;        // 0=rand 1=hcp
         b_distance = 0.15;    // for creating random sphere, min separation between particles
         mush_fac    = 2.3;    // ratio of smallest spring distance to minimum interparticle dist
         omegaz     = 0.2;     // initial spin
@@ -67,10 +74,6 @@ int main(int argc, char* argv[]){
         gamma_all   = 1.0;    // final damping coeff
         t_damp      = 1.0;    // gamma to final values for all springs at this time
         ks          = 8e-2;   // spring constant
-	// orbit
-        m1          = 0.1;   // mass of central body
-        aa          = 7.0;   // semi-major axis of m1 from resolved body
-	ee           =0.0;   // initial eccentricity
 
         ratio1 =0.7; // shape of resolved body  y/x b/a
         ratio2 =0.5; // z/x
@@ -79,9 +82,6 @@ int main(int argc, char* argv[]){
         r_I = 0.0;   // radius where to change ks  for interior
         ks_I = 0.008;  // interior ks value 
         gamma_I = gamma_all;  // interior gamma value 
-	dmfac = 0.0;   // to make lopsided body
-	xside = 1.0; //
-        nporb = 0; // number of orbital periods to integrate
         powerfac = 1.0; // fraction of heat to center of springs
         obliq_deg=0.0;
      }
@@ -91,29 +91,34 @@ int main(int argc, char* argv[]){
         char line[300];
         fgets(line,300,fpi);  sscanf(line,"%s",froot);
         fgets(line,300,fpi);  sscanf(line,"%lf",&dt);
-        fgets(line,300,fpi);  sscanf(line,"%d",&type);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&tmax);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&t_print);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&t_heat);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&powerfac);
+        fgets(line,300,fpi);  sscanf(line,"%d" ,&lattice_type);
         fgets(line,300,fpi);  sscanf(line,"%lf",&b_distance);
         fgets(line,300,fpi);  sscanf(line,"%lf",&mush_fac);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&ratio1);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&ratio2);
         fgets(line,300,fpi);  sscanf(line,"%lf",&omegaz);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&obliq_deg);
         fgets(line,300,fpi);  sscanf(line,"%lf",&gamma_fac);
         fgets(line,300,fpi);  sscanf(line,"%lf",&gamma_all);
         fgets(line,300,fpi);  sscanf(line,"%lf",&t_damp);
         fgets(line,300,fpi);  sscanf(line,"%lf",&ks);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&m1);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&aa);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&ee);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&ratio1);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&ratio2);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&t_print);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&t_heat);
         fgets(line,300,fpi);  sscanf(line,"%lf",&r_I);
         fgets(line,300,fpi);  sscanf(line,"%lf",&ks_I);
         fgets(line,300,fpi);  sscanf(line,"%lf",&gamma_I);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&dmfac);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&xside);
-        fgets(line,300,fpi);  sscanf(line,"%d",&nporb);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&powerfac);
-        fgets(line,300,fpi);  sscanf(line,"%lf",&obliq_deg);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&eps_c);
+        fgets(line,300,fpi);  sscanf(line,"%lf",&extra);
+        fgets(line,300,fpi);  sscanf(line,"%d",&npointmass);
+        for (int ip=0;ip<npointmass;ip++){
+           fgets(line,300,fpi);  sscanf(line,"%lf %lf %lf %lf",
+             mp+ip,rad+ip,itaua+ip,itaue+ip);
+           fgets(line,300,fpi);  sscanf(line,"%lf %lf %lf %lf %lf %lf",
+             aa+ip,ee+ip,ii+ip,longnode+ip,argperi+ip,meananom+ip);
+        }
+
 
      }
      double obliquity = obliq_deg*M_PI/180.0;
@@ -135,16 +140,6 @@ int main(int argc, char* argv[]){
    double mush_distance=b_distance*mush_fac; 
        // distance for connecting and reconnecting springs
 
-// binary in circular or eccentric orbit
-   npert = 1;  // number of perturbing masses
-   double r1 = rball*pow(m1,1.0/3.0);  // radius as expected from density
-   double r1min = 0.5;
-   if (r1 < r1min) r1 = r1min;
-   if (r1 > aa/2) r1 = aa/2;
-   r1 = 1.0; // hard set here!!!!
-   // double theta1 =0.0*M_PI/2.0;  // rotate x-> y of initial condition
-
-   
    FILE *fpr;
    char fname[200];
    sprintf(fname,"%s_run.txt",froot);
@@ -156,7 +151,6 @@ int main(int argc, char* argv[]){
    double volume_ratio = pow(rball,3.0)*ratio1*ratio2;  // neglecting 4pi/3 factor
    double vol_radius = pow(volume_ratio,1.0/3.0);
 
-   
    rball /= vol_radius; // volume radius used to compute semi-major axis
 // assuming that body semi-major axis is rball
    fprintf(fpr,"a %.3f\n",rball); 
@@ -167,14 +161,14 @@ int main(int argc, char* argv[]){
    // so I can check that it is set to 1
 
    // create particle distribution
-   if (type==0){
+   if (lattice_type==0){
       // rand_football_from_sphere(r,b_distance,rball,rball*ratio1, rball*ratio2,mball );
       rand_football(r,b_distance,rball,rball*ratio1, rball*ratio2,mball );
    }
-   if (type ==1){
+   if (lattice_type ==1){
       fill_hcp(r, b_distance, rball , rball*ratio1, rball*ratio2, mball);
    }
-   if (type ==2){
+   if (lattice_type ==2){
       fill_cubic(r, b_distance, rball , rball*ratio1, rball*ratio2, mball);
    }
 
@@ -199,48 +193,47 @@ int main(int argc, char* argv[]){
    double ddr = rball*ratio2 - 0.5*mush_distance;
    ddr = 0.4;
    double Emush = Young_mush(r,il,ih, 0.0, ddr);
-   printf("ddr = %.3f mush_distance =%.3f \n",ddr,mush_distance);
+   double Emush_big = Young_mush_big(r,il,ih);
    printf("Young's modulus %.6f\n",Emush);
+   printf("Young's modulus big %.6f\n",Emush_big);
    fprintf(fpr,"Young's_modulus %.6f\n",Emush);
+   fprintf(fpr,"Young's_modulus big %.6f\n",Emush_big);
+   printf("ddr = %.3f mush_distance =%.3f \n",ddr,mush_distance);
    fprintf(fpr,"mush_distance %.4f\n",mush_distance);
    double LL = mean_L(r); 
    printf("mean L = %.4f\n",LL);
    fprintf(fpr,"mean_L  %.4f\n",LL);
    if (r_I > 0.0){  // change core strength and gamma !!!
-      adjust_ks(r, npert, ks_I, gamma_I*gamma_fac, 0.0, r_I);
+      // adjust_ks(r, npert, ks_I, gamma_I*gamma_fac, 0.0, r_I);
+      adjust_ks_abc(r, npert, ks_I, gamma_I*gamma_fac, r_I, r_I, r_I*(1.0 + eps_c));
       double Emush = Young_mush(r,il,ih, 0.0, r_I);
       printf("Young's modulus Interior different %.6f\n",Emush);
       fprintf(fpr,"Young's_modulus %.6f\n",Emush);
    }
-   if (fabs(dmfac) > 0.01){  // make lopsided by increases masses on one side!!!
-      adjust_mass_side(r, npert, 1.0+dmfac, xside);
-      // heavy side toward perturber with theta1=0 and dmfac >0
-   }
 
    double om = 0.0; // set up the perturbing central mass
-   if (m1>0.0){
-      double ii      = 0.0;
-      double argperi = 0.0;
-      double meananom= 0.0;
-      double longnode= 0.0;
-      om = add_pt_mass_kep(r, il, ih, -1, m1, r1,
-        aa,ee, ii, longnode,argperi,meananom);
-
-      // om=add_one_mass_kep(r, m1, aa, ee, ii,longnode,argperi,meananom,mball,r1);
-      npert = 1;
+   if (npointmass >0){
+      // set up central star
+      int ip=0;
+      om = add_pt_mass_kep(r, il, ih, -1, mp[ip], rad[ip],
+           aa[ip],ee[ip], ii[ip], longnode[ip],argperi[ip],meananom[ip]);
+      fprintf(fpr,"resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
+      printf("resbody mm=%.3f period=%.2f\n",om,2.0*M_PI/om);
       icentral = ih;
+      double na = om*aa[ip];
+      double adot = 3.0*mp[ip]*na/pow(aa[ip],5.0); // should approximately be adot
+      fprintf(fpr,"adot %.3e\n",adot);
+      // set up rest of point masses
+      for(int ipp = 1;ipp<npointmass;ipp++){
+          double omp; // central mass assumed to be first one ipp=ih = icentral
+          omp = add_pt_mass_kep(r, il, ih, icentral, mp[ipp], rad[ipp],
+             aa[ipp],ee[ipp], ii[ipp], longnode[ipp],argperi[ipp],meananom[ipp]);
+          fprintf(fpr,"pointm %d mm=%.3f period=%.2f\n",ipp,omp,2.0*M_PI/omp);
+          printf("pointm %d mm=%.3f period=%.2f\n",ipp,omp,2.0*M_PI/omp);
+      }
+      npert = npointmass;
    }
-   double period = 2.0*M_PI/om;  // initial orbital rotation period
-   printf("rot_period %.3f \n", period);
-   printf("mm  %.3f\n",om);
-   fprintf(fpr,"rot_period  %.3f \n",period);
-   fprintf(fpr,"mm  %.6f\n",om);
 
-   // double eps = epsilon_mom(r, il, ih);
-   // printf("eps= %.3e\n",eps);
-   // fprintf(fpr,"eps  %.3e\n",eps);
-
-   // note no 2.5 here!
    // factor of 0.5 is due to reduced mass being used in calculation
    double tau_relax = 1.0*gamma_all*0.5*(mball/(r->N -1))/spring_mush.ks; // Kelvin Voigt relaxation time
    printf("relaxation time %.3e\n",tau_relax);
@@ -249,13 +242,7 @@ int main(int argc, char* argv[]){
    double barchi = 2.0*fabs(om - omegaz)*tau_relax;  // initial value of barchi
    fprintf(fpr,"barchi  %.4f\n",barchi);
    printf("barchi %.4f\n",barchi);
-   // fprintf(fpr,"posc %.6f\n",posc);
-   // t_damp = posc;   // for initial damping
-   tmax = period*nporb; // integration time
 
-   double na = om*aa;
-   double adot = 3.0*m1*na/pow(aa,5.0); // should approximately be adot
-   fprintf(fpr,"adot %.3e\n",adot);
 
    double Nratio = (double)NS/(double)r->N;
    printf("N=%d  NS=%d NS/N=%.1f\n", r->N, NS, Nratio);

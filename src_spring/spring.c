@@ -1076,6 +1076,8 @@ void adjust_ks(struct reb_simulation* const r, int npert,
    for(int i=0;i<NS;i++){
       spr_xyz_mid(r, springs[i], xc, yc, zc, &xmid, &ymid, &zmid);
       double rmid = sqrt(xmid*xmid + ymid*ymid + zmid*zmid); 
+      // double thetamid = asin(zmid/rmid); // latitude angle
+      // if you want to make an oval inside region you can use this angle
       if ((rmid >= rmin) && (rmid <= rmax)){
            springs[i].ks=ksnew;
            springs[i].gamma=gammanew;
@@ -1083,6 +1085,28 @@ void adjust_ks(struct reb_simulation* const r, int npert,
    }
    
 }
+
+// adjust ks and gamma 
+// for springs with midpoints within ellipsoid set by x^2/a^2 + y^2/b^2 + z^2/c^2 = 1
+void adjust_ks_abc(struct reb_simulation* const r, int npert, 
+    double ksnew, double gammanew, double a, double b, double c)
+{
+   // struct reb_particle* particles = r->particles;
+   int il =0;
+   int ih =r->N - npert; 
+   double xc,yc,zc;
+   compute_com(r,il, ih, &xc, &yc, &zc);
+   double xmid,ymid,zmid;
+   for(int i=0;i<NS;i++){
+      spr_xyz_mid(r, springs[i], xc, yc, zc, &xmid, &ymid, &zmid);
+      double rmid2 = xmid*xmid/(a*a) + ymid*ymid/(b*b) + zmid*zmid/(c*c); 
+      if (rmid2 <= 1.0){
+           springs[i].ks=ksnew;
+           springs[i].gamma=gammanew;
+      }
+   }
+}
+
 
 // change all masses with x>xmin by factor mfac, then rescale so sum is still 1
 // done with respect to origin
