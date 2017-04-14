@@ -28,7 +28,8 @@ int npert=0;
 int icentral=-1; // central mass location
 
 #define NPMAX 10  // maximum number of point masses
-double itaua[NPMAX],itaue[NPMAX];
+double itaua[NPMAX],itaue[NPMAX]; // inverse of migration timescales
+double itmig[NPMAX];  // inverse timescale to get rid of migration
 
 void heartbeat(struct reb_simulation* const r);
 
@@ -83,8 +84,9 @@ int main(int argc, char* argv[]){
         int ip=0;   // index
         mp[ip]       = 1.0;   // mass
         rad[ip]      = 0.0;   // display radius
-        itaua[ip]    = 0.0;   // drift rate
-        itaue[ip]    = 0.0;   // drift rate
+        itaua[ip]    = 0.0;   // inverse drift rate in a
+        itaue[ip]    = 0.0;   // inverse drift rate in e
+        itmig[ip]    = 0.0;   // get rid of drift rate in inverse of this time
 	// orbit
         aa[ip]       =7.0;    // distance of m1 from resolved body, semi-major orbital
 	ee[ip]       =0.0;    // initial eccentricity
@@ -115,8 +117,8 @@ int main(int argc, char* argv[]){
         fgets(line,300,fpi);  sscanf(line,"%lf",&obliquity_deg); // obliquity degrees
         fgets(line,300,fpi);  sscanf(line,"%d",&npointmass); // number of point masses
         for (int ip=0;ip<npointmass;ip++){
-           fgets(line,300,fpi);  sscanf(line,"%lf %lf %lf %lf",
-             mp+ip,rad+ip,itaua+ip,itaue+ip); 
+           fgets(line,300,fpi);  sscanf(line,"%lf %lf %lf %lf %lf",
+             mp+ip,rad+ip,itaua+ip,itaue+ip,itmig+ip); 
            fgets(line,300,fpi);  sscanf(line,"%lf %lf %lf %lf %lf %lf",
              aa+ip,ee+ip,ii+ip,longnode+ip,argperi+ip,meananom+ip);
         }
@@ -289,10 +291,11 @@ void heartbeat(struct reb_simulation* const r){
          if (npert>0) {
             for(int i=0;i<npert;i++){
                 int ip = icentral+i;  // which body drifting
+		double migfac = exp(-1.0* r->t*itmig[i]);
                 if (i==0)  // it is central mass, so drift resolved body
-                   dodrift_res(r, r->dt , itaua[i], itaue[i], icentral, il, ih);
+                   dodrift_res(r,r->dt,itaua[i]*migfac,itaue[i]*migfac,icentral, il, ih);
                 else  // it is another point mass, drifts w.r.t to icentral
-                   dodrift_bin(r, r->dt,  itaua[i], itaue[i], icentral, ip);
+                   dodrift_bin(r,r->dt,itaua[i]*migfac,itaue[i]*migfac,icentral, ip);
             }
 
          }
